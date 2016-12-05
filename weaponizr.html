@@ -1,0 +1,128 @@
+<html>
+<head>
+<title>Weaponizr: A front-end framework</title>
+</head>
+<body>
+<h1>Hello there.</h1>
+<div id="paraOne" data-from="a">I'm linked to the variable 'a'. In the console, try a.set('Hello') and a.get().</div>
+<div id="paraTwo" data-show="c">I'm only visible when variable 'c' is not null or undefined.</div>
+<input type="text" name="myinput" placeholder="Typing here updates 'a'" id="myInput" data-to="a" data-from="a"></input>
+<ul><li id="myList" data-from-array="b"></li></ul>
+</body>
+<script>
+let toWeaponize = document.querySelectorAll('[data-from]');
+let Weaponizr = v => Weaponizr[v];
+Weaponizr.get = (prop) => Weaponizr[prop];
+Weaponizr.create = (varName) => {
+  Weaponizr[varName] = new Proxy({element:[]}, h);
+  Weaponizr[varName].get = (prop) => {
+    if (prop)
+      return Weaponizr[varName][prop];
+    else
+      return Weaponizr[varName].value;
+  };
+  Weaponizr[varName].set = (v, prop) => {
+    if (!prop) {
+      Weaponizr[varName].value = v;
+    } else {
+      Weaponizr[varName][prop] = v;
+    }
+    return v;
+  };
+}
+let h = {
+  get: (x,y) => {
+    return x[y];
+  },
+  set: (x,y,z) => {
+    x[y] = z;
+    if (y === 'value') {
+      for (let el of x.element) {
+        if (el.type === 'primitive') {
+          try {
+            // maybe this should be called dangerouslySetInnerHtml...
+            el.element.innerHTML = x[y].toString();
+            el.element.value = x[y].toString();
+          } catch(e) {
+            // throws an error if you can't set the innerHTML, e.g. with a form element
+          }
+        }
+        if (el.type === 'show') {
+          if (z !== null && z !== undefined) {
+            el.element.style.display = el.display;
+          } else {
+            el.element.style.display = 'none';
+          }
+        }
+        if (el.type === 'array') {
+          let parent = el.element.parentElement;
+          let siblings = parent.childNodes;
+          let siblingsLength = siblings.length;
+          for (let i = 0; i < Math.max(x[y].length,siblingsLength); i++) {
+            console.log(i);
+            if (siblings[i] && x[y][i]) {
+              siblings[i].innerHTML = x[y][i];
+            } else {
+              if (x[y][i]) {
+                let newNode = siblings[0].cloneNode(false);
+                newNode.innerHTML = x[y][i].toString();
+                parent.appendChild(newNode);
+              } else {
+                parent.removeChild(siblings[siblings.length-1]);
+              }
+            }
+          }
+        }
+      }
+    }
+    return x[y];
+  }
+};
+
+
+for (let el of toWeaponize) {
+  let varName = el['attributes']['data-from'].value;
+  if (!Weaponizr[varName]) {
+    Weaponizr.create(varName);
+  }
+  // cache the element we're weaponizing
+  Weaponizr[varName].element.push({element: el, type: 'primitive'});
+}
+toWeaponize = document.querySelectorAll('[data-to]');
+for (let el of toWeaponize) {
+  let varName = el['attributes']['data-to'].value;
+  if (!Weaponizr[varName]) {
+    Weaponizr.create(varName);
+  }
+  el.onkeyup = e => {
+    Weaponizr[varName].value = e.target.value;
+  };
+}
+toWeaponize = document.querySelectorAll('[data-from-array]');
+for (let el of toWeaponize) {
+  let varName = el['attributes']['data-from-array'].value;
+  if (!Weaponizr[varName]) {
+    Weaponizr.create(varName);
+  }
+  Weaponizr[varName].element.push({element: el, type: 'array'});
+}
+toWeaponize = document.querySelectorAll('[data-show]');
+for (let el of toWeaponize) {
+  let varName = el['attributes']['data-show'].value;
+  if (!Weaponizr[varName]) {
+    Weaponizr.create(varName);
+  }
+  Weaponizr[varName].element.push({element: el, type: 'show', display: el.style.display || 'block'});
+  if (!Weaponizr[varName].value) el.style.display = 'none';
+}
+/*
+  Use like this: a = Weaponizr('a'); a.set('HELLO'); a.get() --> 'HELLO' ;
+  b = Weaponizr('b'); b.set([1,2,3]); b.set([1,3]);
+  */
+  a = Weaponizr('a');
+  b = Weaponizr('b');
+  b.set(["I'm a list","Try modifying the","variable 'b'"]);
+  c = Weaponizr('c');
+  c.set("I'm only visible when the variable 'c' is not null or undefined");
+</script>
+</html>
