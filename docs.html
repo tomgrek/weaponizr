@@ -1,0 +1,28 @@
+<html>
+<head>
+<title>Weaponizr: A front-end framework</title>
+</head>
+<body style="margin: 0;">
+<h1 style="margin: 0;" >Weaponizr</h1>
+<div style="display:flex; height: 90%; justify-content:space-around; position: relative; top: 1em;">
+  <div style="width: calc(30% - 2em); border: 1px solid black; height: 100%;">
+    <div data-from-array="pages"></div>
+  </div>
+  <div style="border: 1px solid red; height: 100%; width: 70%;"></div>
+</div>
+</body>
+<script src="weaponizr.js"></script>
+<script>
+let pageData = [
+  {title: "Page 1", content: "zig"},
+  {title: "Page 2", content: "zag"},
+  {title: "Page 3", content: "zog"}
+];
+let pageMap = page => {
+  return `<div>${page.title}</div>`;
+};
+console.log(pageData.map(pageMap));
+pages = Weaponizr('pages');
+//pages.set(pageData.map(pageMap));
+</script>
+</html>
