@@ -1,28 +1,41 @@
 <html>
 <head>
 <title>Weaponizr: A front-end framework</title>
+<style>
+.section {
+  font-size: 2em;
+  cursor: pointer;
+  margin: 1px 1px;
+  border: 1px solid green;
+}
+</style>
 </head>
 <body style="margin: 0;">
 <h1 style="margin: 0;" >Weaponizr</h1>
 <div style="display:flex; height: 90%; justify-content:space-around; position: relative; top: 1em;">
   <div style="width: calc(30% - 2em); border: 1px solid black; height: 100%;">
-    <div data-from-array="pages"></div>
+    <div data-from-array="pages" data-to="onclick:pageTurn"></div>
   </div>
-  <div style="border: 1px solid red; height: 100%; width: 70%;"></div>
+  <div data-from="page" style="border: 1px solid red; height: 100%; width: 70%;"></div>
 </div>
 </body>
 <script src="weaponizr.js"></script>
 <script>
 let pageData = [
-  {title: "Page 1", content: "zig"},
-  {title: "Page 2", content: "zag"},
-  {title: "Page 3", content: "zog"}
+  {title: "Page 1", id: 'page1', content: "zig"},
+  {title: "Page 2", id: 'page2', content: "zag"},
+  {title: "Page 3", id: 'page3', content: "zog"},
+  {title: "Page 4", id: 'page4', content: "zeg"},
 ];
 let pageMap = page => {
-  return `<div>${page.title}</div>`;
+  return `<div class="section" id="${page.id}">${page.title}</div>`;
 };
-console.log(pageData.map(pageMap));
 pages = Weaponizr('pages');
-//pages.set(pageData.map(pageMap));
+pages.set(pageData.map(pageMap));
+page = Weaponizr('page');
+pageTurn = Weaponizr('pageTurn');
+pageTurn.set((e) => {
+  page.set(pageData.filter(x => x.id === e.target.id)[0].content);
+});
 </script>
 </html>

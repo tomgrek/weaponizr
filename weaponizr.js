@@ -1,7 +1,7 @@
 let toWeaponize = document.querySelectorAll('[data-from]');
 let Weaponizr = v => Weaponizr[v];
 Weaponizr.get = (prop) => Weaponizr[prop];
-Weaponizr.create = (varName) => {
+Weaponizr.create = (varName, type) => {
   Weaponizr[varName] = new Proxy({element:[]}, h);
   Weaponizr[varName].get = (prop) => {
     if (prop)
@@ -13,10 +13,26 @@ Weaponizr.create = (varName) => {
     if (!prop) {
       Weaponizr[varName].value = v;
     } else {
-      Weaponizr[varName][prop] = v;
+      if (!Array.isArray(Weaponizr[varName].value)) {
+        Weaponizr[varName][prop] = v;
+      } else {
+        Weaponizr[varName].value[prop] = v;
+        Weaponizr[varName].value = Weaponizr[varName].get();
+      }
     }
     return v;
   };
+  if (type === 'array') {
+    Weaponizr[varName].push = (v) => {
+      Weaponizr[varName].set(v, Weaponizr[varName].value.length);
+      return Weaponizr[varName].value = Weaponizr[varName].get();
+    }
+    Weaponizr[varName].pop = () => {
+      let temp = Weaponizr[varName].value.pop();
+      Weaponizr[varName].value = Weaponizr[varName].get();
+      return temp;
+    }
+  }
 }
 let h = {
   get: (x,y) => {
@@ -50,20 +66,22 @@ let h = {
           }
         }
         if (el.type === 'array') {
-          let parent = el.element.parentElement;
-          let siblings = parent.childNodes;
+          let parent = el.element; // el.element.parentElement
+          // not childNodes as it returns ::before and ::after also
+          let siblings = parent.children;
           let siblingsLength = siblings.length;
-          console.log(parent,siblings,siblingsLength);
           for (let i = 0; i < Math.max(x[y].length,siblingsLength); i++) {
             if (siblings[i] && x[y][i]) {
-              siblings[i].innerHTML = x[y][i];
+              siblings[i].parentElement.innerHTML = x[y][i];
             } else {
               if (x[y][i]) {
-                let newNode = siblings[0].cloneNode(false);
+                let newNode = document.createElement('div'); //siblings[0].cloneNode(false);
                 newNode.innerHTML = x[y][i].toString();
-                parent.appendChild(newNode);
+                parent.appendChild(newNode.children[0] || newNode);
               } else {
-                parent.removeChild(siblings[siblings.length-1]);
+                // if (siblings[siblings.length]) {
+                //   parent.removeChild(siblings[siblings.length-1]);
+                // }
               }
             }
           }
@@ -103,7 +121,7 @@ toWeaponize = document.querySelectorAll('[data-from-array]');
 for (let el of toWeaponize) {
   let varName = el['attributes']['data-from-array'].value;
   if (!Weaponizr[varName]) {
-    Weaponizr.create(varName);
+    Weaponizr.create(varName, 'array');
   }
   Weaponizr[varName].element.push({element: el, type: 'array'});
 }
