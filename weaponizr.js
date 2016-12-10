@@ -4,8 +4,13 @@ Weaponizr.get = (prop) => Weaponizr[prop];
 Weaponizr.create = (varName, type) => {
   Weaponizr[varName] = new Proxy({element:[]}, h);
   Weaponizr[varName].get = (prop) => {
-    if (prop)
-      return Weaponizr[varName][prop];
+    if (prop) {
+      if (Array.isArray(Weaponizr[varName].value)) {
+        return Weaponizr[varName].value[prop];
+      } else {
+        return Weaponizr[varName][prop];
+      }
+    }
     else
       return Weaponizr[varName].value;
   };
@@ -71,17 +76,18 @@ let h = {
           let siblings = parent.children;
           let siblingsLength = siblings.length;
           for (let i = 0; i < Math.max(x[y].length,siblingsLength); i++) {
+            let newNode = document.createElement('div'); //siblings[0].cloneNode(false);
+            newNode.innerHTML = x[y][i] ? x[y][i].toString() : '';
+            newNode = newNode.firstChild;
             if (siblings[i] && x[y][i]) {
-              siblings[i].parentElement.innerHTML = x[y][i];
+              if (!siblings[i].isEqualNode(newNode)) {
+                siblings[i].replaceWith(newNode);
+              };
             } else {
               if (x[y][i]) {
-                let newNode = document.createElement('div'); //siblings[0].cloneNode(false);
-                newNode.innerHTML = x[y][i].toString();
-                parent.appendChild(newNode.children[0] || newNode);
+                parent.appendChild(newNode);
               } else {
-                // if (siblings[siblings.length]) {
-                //   parent.removeChild(siblings[siblings.length-1]);
-                // }
+                parent.removeChild(siblings[siblings.length-1]);
               }
             }
           }
