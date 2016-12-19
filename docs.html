@@ -6,6 +6,7 @@
 * {
   margin: 0;
   font-family: 'Oxygen Mono', monospace;
+  font-size: 1.6vw;
   overflow: hidden;
 }
 a {
@@ -22,16 +23,75 @@ h1 {
   font-size: 3.2vw;
   left: 1rem;
   cursor: pointer;
+  margin-bottom: 1.8vh;
+}
+h1:not(.strap) {
+  margin-bottom: 2vh;
+  cursor: default;
+  left: 0;
+}
+h2 {
+  font-size: 2vw;
+  font-family: 'VT323', monospace;
+  margin: 2vh 0 1.6vh 0;
 }
 p {
-  font-size: 2vw;
+  margin-bottom: 1vh;
+  font-size: 1.6vw;
+}
+p:last-of-type {
+  margin-bottom: 3vh;
+}
+li {
+  margin: 1vh 0;
+}
+code {
+  border: 1px solid #333;
+  background: #444;
+  border-radius: 3px;
+  color: white;
+  width: 94%;
+  margin: 1vw auto;
+  position: relative;
+  display: block;
+  padding: 0.8vh 1.6vw;
+  font-family: 'console', monospace;
+  line-height: 1.8vh;
+  font-size: 1.2vw;
+  box-shadow: 1px -1px 4px black;
+  white-space: pre-wrap;
+}
+code span {
+  font-size: inherit;
+}
+code > span.quoted {
+  color: blueviolet;
+}
+code > span.comment {
+  color: gray;
+}
+code > span.weaponizr-keyword {
+  color: red;
+}
+code span.html-element {
+  color: yellow;
+}
+blockquote {
+  margin: 2vh 0 0 0;
+  color: #666;
+}
+blockquote p {
+  font-family: 'VT323', monospace;
+  font-size: 2.6vw;
+}
+blockquote p::before {
+  content: "> ";
 }
 .section {
-  font-size: 1.8vw;
+  font-size: 1.7vh;
   cursor: pointer;
   margin: 0.1em 0.05em;
-  min-height: 4vh;
-  line-height: 4vh;
+  line-height: 3.4vh;
   color: white;
   background-color: #333;
   text-align: center;
@@ -47,6 +107,10 @@ p {
   stroke-width: 0;
   stroke: currentColor;
   fill: currentColor;
+}
+.subheading {
+  font-size: 1vh;
+  line-height: 1vh;
 }
 @keyframes change {
     0% { opacity: 1; }
@@ -71,6 +135,13 @@ p {
   animation-duration: 0.8s;
   animation-iteration-count: 10;
 }
+ul {
+  margin-bottom: 1vh;
+}
+li {
+  overflow:visible;
+  list-style-type: square;
+}
 </style>
 </head>
 <body>
@@ -88,12 +159,12 @@ p {
 </defs>
 </svg>
   <a href="https://github.com/tomgrek/weaponizr"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/a6677b08c955af8400f44c6298f40e7d19cc5b2d/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677261795f3664366436642e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png"></a>
-<a href="//"><h1 style="margin: 0; height: 2em; line-height: 2em; vertical-align: middle; position: relative;" >Weaponizr
-<h1 style="color: red; position: relative; left: 3em;"> ... ready to play global?
+<a href="//"><h1 class="strap" style="margin: 0; height: 2em; line-height: 2em; vertical-align: middle; position: relative;" >Weaponizr
+<h1 class="strap" style="color: red; position: relative; left: 3em;"> ... ready to play global?
 (<svg class="icon icon-rocket" style="font-size: 0.5em;"><use xlink:href="#icon-rocket"></use></svg>)<span class="blink">|</span>
 </h1></h1></a>
-<div style="display:flex; height: calc(90% - 2vw); justify-content:space-around; position: relative; ">
-  <div style="width: calc(30% - 2em); height: 100%;">
+<div style="display:flex; height: 90%; justify-content:space-around; position: relative; ">
+  <div style="width: calc(30% - 4em); height: 100%; margin-left: auto; margin-right: auto;">
     <div data-from-array="pages" data-to="onclick:pageTurn"></div>
   </div>
   <div style="border-left: 1px solid #333; height: 100%; width: 70%; overflow-y: auto; padding: 0 1vw;" data-to="onscroll:scroller">
@@ -104,46 +175,68 @@ p {
   <a href="https://tomgrek.com" data-attributes-from="zigzig" style="color: #cdcdcd; text-decoration: none; line-height: 4em; font-size: 0.5em; position: absolute; right: 1em; ">(c) Tom Grek, 2016</a>
 </div>
 </body>
-<script src="weaponizr.js"></script>
+<script src="weaponizr0.0.1.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/1.5.1/showdown.min.js"></script>
 <script>
 
-
-Weaponizr.setEndPoint('http://localhost:3000/getData');
-
-let converter = new showdown.Converter();
-Weaponizr.create('pageData');
 (async () => {
+  Weaponizr.setEndPoint('http://localhost:3000/getData/');
+
+  let converter = new showdown.Converter();
+  Weaponizr.create('pageData');
 await Weaponizr['pageData'].fetch();
-Weaponizr['pageData'].get().map(page => {
+Weaponizr['pageData'].get().map((page,i) => {
   page.content = converter.makeHtml(page.content);
   let el = document.createElement('div');
   el.innerHTML = page.content;
-  el.querySelectorAll('h2').forEach((header, i) => header.id = 'header'+i);
+  // highlight source code (basic)
+  el.querySelectorAll('code').forEach((block) => {
+    block.innerHTML = block.innerText
+                      .replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                      .replace(/\"(.*?)\"/g, '"<span class="quoted">$1</span>"')
+                      .replace(/\'(.*?)\'/g, "'<span class='quoted'>$1</span>'")
+                      .replace(/(\/\/)(.*)?/g,'<span class="comment">//$2</span>')
+                      .replace(/Weaponizr/g,'<span class="weaponizr-keyword">Weaponizr</span>')
+                      .replace(/&lt;(.*?)([\ &gt;].*?)/g,'&lt;<span class="html-element">$1</span>$2');
+  });
+
+
+  el.querySelectorAll('h2').forEach((header, j) => {
+    header.id = 'header'+i+'_x'+j;
+    if (!Weaponizr['subheader']+i) Weaponizr.create('subheader'+i, 'array');
+    Weaponizr['subheader'+i].push(header.innerText);
+  });
   page.content = el.innerHTML.toString();
 });
-let pageMap = page => {
+let pageMap = (page,i) => {
   return `<div class="section" id="${page.id}"><span>${page.title}</span>
   <svg style="height: 1.2em; margin-top: 0.1em; margin-right: 0.2em; position: absolute; top: 0; right: 0;" data-to="onclick:dropdown" id="${page.id}" class="icon icon-circle-down"><use xlink:href="#icon-circle-down"></use></svg>
   <div data-css-from="${page.id}" class="animate-height" style="max-height: 0; position: relative; left: 0;">
     <ul style="display:block; padding: 0;">
-      <li style="display:block" data-css-from="header0" data-to="onclick:scrollToLink">Item one</li>
-      <li style="display:block" data-css-from="header1" data-to="onclick:scrollToLink">Item two</li>
+      <li data-mock id="subheader${i}_x__n__" class="subheading" style="display:block" data-css-from="header${i}_x__n__" data-to="onclick:scrollToLink" data-from-array="subheader${i}"></li>
     </ul>
   </div>
   </div>`;
 };
 Weaponizr['pages'].set(Weaponizr['pageData'].get().map(pageMap));
+
+Weaponizr.currentPage = 0;
 Weaponizr['pageTurn'].set((element, event) => {
   event.preventDefault();
+  // TODO! Make this prettier
   if (element.className!=="section") {
     return false;
   }
+  Weaponizr.currentPage = element.id;
   // How to trigger an animation to run
   Weaponizr['ani'].set('');
   Weaponizr['ani'].set('animated');
   // since the animation takes 1 second, choose to switch the content after 0.5 second
-  setTimeout(()=>Weaponizr['page'].set(Weaponizr['pageData'].get().filter(x => x.id === element.id)[0].content),500);
+  let desiredPage = Weaponizr['pageData'].get().filter(x => x.id === element.id)[0];
+  setTimeout(() => {
+    Weaponizr['page'].set(desiredPage.content);
+    window.location.hash = desiredPage.title.toLowerCase().replace(' ','');
+  }, 500);
 });
 
 Weaponizr['dropdown'].set((element, event) => {
@@ -160,7 +253,6 @@ Weaponizr['dropdown'].set((element, event) => {
 HTMLElement.prototype.isVisibleInside = function(container) {
   let containerScrollPos = container.getBoundingClientRect();
   let myScrollPos = this.getBoundingClientRect();
-  // checking top and bottom only, not left and right
   if (myScrollPos.top - containerScrollPos.top > 0 && myScrollPos.bottom - containerScrollPos.bottom < 0) {
     return true;
   } else {
@@ -171,22 +263,62 @@ HTMLElement.prototype.isVisibleInside = function(container) {
 Weaponizr['scroller'].set((element, event) => {
   let scrollPos = element.getBoundingClientRect();
   let first = true;
-  for (var link of element.querySelectorAll('h2')) {
+  for (let link of Object.keys(Weaponizr).filter(x => x.substr(0,6) === 'header')) {
+    Weaponizr[link].set({color: 'white'});
+  }
+
+  for (let link of element.querySelectorAll('h2')) {
     if (link.isVisibleInside(element) && first) {
       first = false;
       Weaponizr[link.id].set({color: 'red'});
-    } else {
-      Weaponizr[link.id].set({color: 'white'});
     }
   }
 });
 
 Weaponizr['scrollToLink'].set((element, event) => {
-  let scrollContainer = Weaponizr['page'].element[0].element.parentElement;
-  let scrollTo = scrollContainer.querySelector('#'+element.attributes['data-css-from'].value);
-  scrollContainer.scrollTop = scrollTo.offsetTop;
-});
-})();
+  let pageToVal = element.attributes['data-css-from'].value;
+  let pageId = pageToVal.slice(6,pageToVal.indexOf('_x'));
+  let headerId = pageToVal.slice(pageToVal.indexOf('_x')+2);
+  if (Weaponizr.currentPage !== 'page'+pageId) {
+    Weaponizr['ani'].set('');
+    Weaponizr['ani'].set('animated');
+    // since the animation takes 1 second, choose to switch the content after 0.5 second
+    setTimeout(()=> {
+      Weaponizr['page'].set(Weaponizr['pageData'].get().filter(x => x.id === 'page'+pageId)[0].content)
+      let scrollContainer = Weaponizr['page'].element[0].element.parentElement;
+      let scrollTo = scrollContainer.querySelector('#header'+pageId+'_x'+headerId);
+      scrollContainer.scrollTop = scrollTo.offsetTop - 10;
+    },500);
+  } else {
+    let scrollContainer = Weaponizr['page'].element[0].element.parentElement;
+    let scrollTo = scrollContainer.querySelector('#header'+pageId+'_x'+headerId);
+    scrollContainer.scrollTop = scrollTo.offsetTop;
+  }
+  Weaponizr.currentPage = 'page'+pageId;
 
+});
+
+if (window.location.hash && window.location.hash !== '') {
+  let title = window.location.hash.slice(1).toLowerCase();
+  Weaponizr['page'].set(Weaponizr['pageData'].get().filter(x => x.title.replace(' ','').toLowerCase() === title)[0].content);
+} else {
+  Weaponizr['page'].set(Weaponizr['pageData'].get()[0].content);
+};
+Weaponizr['page0'].set({maxHeight: '20vh'});
+})();
+window.onhashchange = (e) => {
+  e.preventDefault();
+  let newHash = e.newURL.slice(e.newURL.indexOf('#')+1);
+  let newPage = Weaponizr['pageData'].get().filter(x => x.title.replace(' ','').toLowerCase() === newHash)[0];
+  Weaponizr['page'].set(newPage.content);
+  for (let i = 0; i < Weaponizr['pageData'].get().length; i++) {
+    if (newPage.id !== 'page'+i) {
+      Weaponizr['page'+i].set({maxHeight: '0'});
+    } else {
+    } Weaponizr[newPage.id].set({maxHeight: '20vh'});
+  }
+}
+// to blog about
+//(()=>{console.log('hi!')})();
 </script>
 </html>

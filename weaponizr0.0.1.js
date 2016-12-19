@@ -6,6 +6,9 @@ Weaponizr.setEndPoint = (endPoint, auth) => {
   return endPoint;
 };
 Weaponizr.create = (varName, type) => {
+  if (Weaponizr[varName] !== undefined) {
+    return true;
+  }
   Weaponizr[varName] = new Proxy({element:[]}, h);
   Weaponizr[varName].get = (prop) => {
     if (prop) {
@@ -26,19 +29,20 @@ Weaponizr.create = (varName, type) => {
     }
   };
   Weaponizr[varName].set = (v, prop) => {
-    if (!prop) {
+    if (prop === undefined ) {
       Weaponizr[varName].value = v;
     } else {
-      if (!Array.isArray(Weaponizr[varName].value)) {
+      if (!Array.isArray(Weaponizr[varName].value) && !Weaponizr[varName].type === 'array') {
         Weaponizr[varName][prop] = v;
       } else {
+        if (!Weaponizr[varName].value) Weaponizr[varName].value = [];
         Weaponizr[varName].value[prop] = v;
         Weaponizr[varName].value = Weaponizr[varName].get();
       }
     }
     return v;
   };
-  Weaponizr[varName].fetch = async (args) => {
+  Weaponizr[varName].fetch = async (args, credentials) => {
     let argString = '';
     if (typeof args === 'object') {
       for (let key of Object.keys(args)) {
@@ -46,21 +50,58 @@ Weaponizr.create = (varName, type) => {
       }
     }
     return new Promise((resolve, reject) => {
-      fetch(this.endPoint + '/' + varName + '/' + argString).then(
+      fetch(this.endPoint + (this.endPoint[this.endPoint.length-1] === '/' ? '' : '/') + varName + '/' + argString, {credentials: credentials ? 'include' : ''}).then(
         (r) => {
           if (!r || !r.ok) {
             return reject(r);
           }
           r.json().then(
-            (r) => { Weaponizr[varName].set(r[varName]); resolve(r); }
+            (r) => {
+              Weaponizr[varName].set(r[varName]);
+              resolve(r);
+            }
+          );
+        });
+      });
+  };
+  Weaponizr[varName].send = async (args, credentials) => {
+    let argString = '';
+    if (typeof args === 'object') {
+      for (let key of Object.keys(args)) {
+        argString += args[key] + '/';
+      }
+    }
+    return new Promise((resolve, reject) => {
+      let opts = {
+        method: 'POST',
+        headers: new Headers({"Content-Type": "application/json"}),
+        credentials: credentials ? 'include' : '',
+        body: JSON.stringify(Weaponizr[varName].get()),
+      };
+      fetch(this.endPoint + (this.endPoint[this.endPoint.length-1] === '/' ? '' : '/') + varName + '/' + argString, opts).then(
+        (r) => {
+          if (!r || !r.ok) {
+            return reject(r);
+          }
+          r.json().then(
+            (r) => {
+              Weaponizr[varName].set(r[varName]);
+              resolve(r);
+            }
           );
         });
       });
   };
   if (type === 'array') {
     Weaponizr[varName].push = (v) => {
-      Weaponizr[varName].set(v, Weaponizr[varName].value.length);
-      return Weaponizr[varName].value = Weaponizr[varName].get();
+
+      try {
+        Weaponizr[varName].set(v, Weaponizr[varName].value.length);
+      } catch(e) {
+        Weaponizr[varName].set(v,0);
+      }
+
+      return Weaponizr[varName].get();
     }
     Weaponizr[varName].pop = () => {
       let temp = Weaponizr[varName].value.pop();
@@ -82,6 +123,7 @@ let h = {
             // maybe this should be called dangerouslySetInnerHtml...
             el.element.innerHTML = x[y].toString();
             el.element.value = x[y].toString();
+            doWeapons(el.element);
           } catch(e) {
             // throws an error if you can't set the innerHTML, e.g. with a form element
           }
@@ -97,6 +139,7 @@ let h = {
           for (var attribute of Object.keys(z)) {
             el.element.setAttribute(attribute, z[attribute]);
           }
+          doWeapons(el.element);
         }
         if (el.type === 'css') {
           let keys = Object.keys(z);
@@ -115,25 +158,45 @@ let h = {
           let temp = el.element.offsetHeight;
         }
         if (el.type === 'array') {
-          let parent = el.element;
-          // use children not childNodes as it returns ::before and ::after also
-          let siblings = parent.children;
-          let siblingsLength = siblings.length;
-          for (let i = 0; i < Math.max(x[y].length,siblingsLength); i++) {
-            let newNode = document.createElement('div');
-            newNode.innerHTML = x[y][i] ? x[y][i].toString() : '';
-            newNode = newNode.firstChild;
-            if (siblings[i] && x[y][i]) {
-              if (!siblings[i].isEqualNode(newNode)) { // minimize re-rendering
-                siblings[i].replaceWith(newNode);
-              };
-            } else {
-              if (x[y][i]) {
-                parent.appendChild(newNode);
-                doWeapons(newNode);
-              } else {
-                parent.removeChild(siblings[siblings.length-1]);
+          if (!el.element) {
+            for (let i = 0; i < x[y].length; i++) {
+              let newNode = el.mock.cloneNode();
+              newNode.removeAttribute('data-from-array');
+              newNode.innerHTML = x[y][i] ? x[y][i].toString() : '';
+              for (let attr of newNode.attributes) {
+                attr.value = attr.value.replace(/(__n__)/g,i);
               }
+              el.parent.appendChild(newNode);
+              doWeapons(el.parent);
+              el.element = 'dummy';
+            }
+            return;
+          } else {
+            let elementsLength = el.parent.children.length;
+            for (let i = 0; i < Math.max(x[y].length,elementsLength); i++) {
+              let newNode = el.mock.cloneNode();
+              newNode.removeAttribute('data-from-array');
+              newNode.innerHTML = x[y][i] ? x[y][i].toString() : '';
+              for (let attr of newNode.attributes) {
+                attr.value = attr.value.replace(/(__n__)/g,i);
+              }
+              if(el.parent.children[i] && el.parent.children[i].isEqualNode(newNode)) {
+                continue;
+              } else {
+                if (!el.parent.children[i]) {
+                  el.parent.appendChild(newNode);
+                  continue;
+                }
+                if (x[y][i] === undefined || x[y][i] === null) {
+                  let j = i;
+                  while (el.parent.children[j]) {
+                    el.parent.removeChild(el.parent.children[j]);
+                  }
+                  continue;
+                }
+                el.parent.children[i].replaceWith(newNode);
+              }
+              doWeapons(el.parent);
             }
           }
         }
@@ -144,6 +207,7 @@ let h = {
 };
 
 var doWeapons = function(root) {
+
 let toWeaponize = root.querySelectorAll('[data-from]');
 for (let el of toWeaponize) {
   let varName = el['attributes']['data-from'].value;
@@ -185,10 +249,24 @@ for (let el of toWeaponize) {
 toWeaponize = root.querySelectorAll('[data-from-array]');
 for (let el of toWeaponize) {
   let varName = el['attributes']['data-from-array'].value;
+  if (el['attributes']['data-from-array'].value.indexOf('__n__') !== -1) {
+    let cnt = 0;
+    let base = varName;
+    varName = base.replace(/(__n__)/g, 0);
+    while (Weaponizr[varName]) {
+      varName = base.replace(/(__n__)/g, cnt);
+      cnt++;
+    }
+  }
+
   if (!Weaponizr[varName]) {
     Weaponizr.create(varName, 'array');
   }
-  Weaponizr[varName].element.push({element: el, type: 'array'});
+  if (!Weaponizr[varName].element.length) {
+    Weaponizr[varName].element.push({element: null, type: 'array', mock: el.cloneNode(), parent: el.parentElement});
+    Weaponizr[varName].set(Weaponizr[varName].get());
+    el.parentElement.removeChild(el);
+  }
 }
 toWeaponize = root.querySelectorAll('[data-show]');
 for (let el of toWeaponize) {
@@ -206,6 +284,15 @@ for (let el of toWeaponize) {
 toWeaponize = root.querySelectorAll('[data-css-from]');
 for (let el of toWeaponize) {
   let varName = el['attributes']['data-css-from'].value;
+  if (el['attributes']['data-css-from'].value.indexOf('__n__') !== -1) {
+    let cnt = 0;
+    let base = varName;
+    varName = base.replace(/(__n__)/g, 0);
+    while (Weaponizr[varName]) {
+      varName = base.replace(/(__n__)/g, cnt);
+      cnt++;
+    }
+  }
   if (!Weaponizr[varName]) {
     Weaponizr.create(varName);
   }
