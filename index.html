@@ -134,6 +134,7 @@ blockquote p::before {
   animation-name: blinky;
   animation-duration: 0.8s;
   animation-iteration-count: 10;
+  font-size: 2.8vw;
 }
 ul {
   margin-bottom: 1vh;
@@ -160,9 +161,12 @@ li {
 </svg>
   <a href="https://github.com/tomgrek/weaponizr"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/a6677b08c955af8400f44c6298f40e7d19cc5b2d/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677261795f3664366436642e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png"></a>
 <a href="//"><h1 class="strap" style="margin: 0; height: 2em; line-height: 2em; vertical-align: middle; position: relative;" >Weaponizr
-<h1 class="strap" style="color: red; position: relative; left: 3em;"> ... ready to play global?
+<h1 class="strap" style="color: red; position: relative; left: 3em; margin-bottom: 0;"> ... ready to play global?
 (<svg class="icon icon-rocket" style="font-size: 0.5em;"><use xlink:href="#icon-rocket"></use></svg>)<span class="blink">|</span>
 </h1></h1></a>
+<div id="error" style="border: 2px solid black; width: 50%; position: absolute; left: 50%; display: none; transform: translateX(-50%);">
+  Sorry, your browser doesn't support the latest Javascript needed for this site (including the async keyword). Try the latest Chrome (mobile or desktop).
+</div>
 <div style="display:flex; height: 90%; justify-content:space-around; position: relative; ">
   <div style="width: calc(30% - 4em); height: 100%; margin-left: auto; margin-right: auto;">
     <div data-from-array="pages" data-to="onclick:pageTurn"></div>
@@ -178,9 +182,13 @@ li {
 <script src="weaponizr0.0.1.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/1.5.1/showdown.min.js"></script>
 <script>
-
+window.onerror = () => {
+  document.getElementById('error').style['display'] = 'block';
+}
+</script>
+<script>
 (async () => {
-  Weaponizr.setEndPoint('http://localhost:3000/getData/');
+  Weaponizr.setEndPoint('http://api.weaponizr.com/getData/');
 
   let converter = new showdown.Converter();
   Weaponizr.create('pageData');
@@ -235,7 +243,7 @@ Weaponizr['pageTurn'].set((element, event) => {
   let desiredPage = Weaponizr['pageData'].get().filter(x => x.id === element.id)[0];
   setTimeout(() => {
     Weaponizr['page'].set(desiredPage.content);
-    window.location.hash = desiredPage.title.toLowerCase().replace(' ','');
+    window.location.hash = desiredPage.title.toLowerCase().replace(/\ /g,'');
   }, 500);
 });
 
@@ -300,7 +308,7 @@ Weaponizr['scrollToLink'].set((element, event) => {
 
 if (window.location.hash && window.location.hash !== '') {
   let title = window.location.hash.slice(1).toLowerCase();
-  Weaponizr['page'].set(Weaponizr['pageData'].get().filter(x => x.title.replace(' ','').toLowerCase() === title)[0].content);
+  Weaponizr['page'].set(Weaponizr['pageData'].get().filter(x => x.title.replace(/\ /g,'').toLowerCase() === title)[0].content);
 } else {
   Weaponizr['page'].set(Weaponizr['pageData'].get()[0].content);
 };
@@ -309,7 +317,7 @@ Weaponizr['page0'].set({maxHeight: '20vh'});
 window.onhashchange = (e) => {
   e.preventDefault();
   let newHash = e.newURL.slice(e.newURL.indexOf('#')+1);
-  let newPage = Weaponizr['pageData'].get().filter(x => x.title.replace(' ','').toLowerCase() === newHash)[0];
+  let newPage = Weaponizr['pageData'].get().filter(x => x.title.replace(/\ /g,'').toLowerCase() === newHash)[0];
   Weaponizr['page'].set(newPage.content);
   for (let i = 0; i < Weaponizr['pageData'].get().length; i++) {
     if (newPage.id !== 'page'+i) {
